@@ -1,0 +1,5 @@
+docker-compose.yml
+etc_munge
+etc_slurm
+shared
+var_lib_mysql

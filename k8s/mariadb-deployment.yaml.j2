@@ -1,0 +1,39 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  annotations:
+    kompose.cmd: kompose convert --controller deployment
+    kompose.version: 1.21.0 ()
+  labels:
+    io.kompose.service: mariadb
+  name: mariadb
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      io.kompose.service: mariadb
+  strategy:
+    type: Recreate
+  template:
+    metadata:
+      annotations:
+        kompose.cmd: kompose convert --controller deployment
+        kompose.version: 1.21.0 ()
+      labels:
+        io.kompose.network/slurm: "true"
+        io.kompose.service: mariadb
+    spec:
+      containers:
+      - env:
+        - name: MYSQL_ROOT_PASSWORD
+          value: {{ docker.mysql_root_password }}
+        image: mariadb
+        imagePullPolicy: "IfNotPresent"
+        name: mariadb
+        ports:
+        - containerPort: 3306
+        resources: {}
+      restartPolicy: Always
+      serviceAccountName: ""
+
+status: {}

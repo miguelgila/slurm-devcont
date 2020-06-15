@@ -1,0 +1,63 @@
+version: '3'
+services:
+  mariadb:
+    restart: always
+    image: mariadb
+    environment:
+      - MYSQL_ROOT_PASSWORD={{ docker.mysql_root_password }}
+    volumes:
+      - var_lib_mysql:/var/lib/mysql
+    networks:
+      - slurm
+    ports:
+      - 3306:3306
+  {{ docker.slurm_control_machine }}:
+    restart: always
+    image: {{ docker.image }}
+    hostname: {{ docker.slurm_control_machine }}
+    environment:
+      - MUNGED_ENABLED=true
+      - SLURMDBD_ENABLED=true
+      - SLURMCTLD_ENABLED=true
+      - SLURMD_ENABLED=true
+      - SLURM_CONTROL_MACHINE={{ docker.slurm_control_machine }}
+      - SLURM_NODES={{ docker.slurm_nodes }}
+      - SLURMDBD_STORAGE_HOST=mariadb
+      - SLURMDBD_STORAGE_PORT=3306
+      - SLURMDBD_STORAGE_USER=root
+      - SLURMDBD_STORAGE_PASS={{ docker.mysql_root_password }}
+    volumes:
+      - etc_munge:/etc/munge
+      - etc_slurm:/etc/slurm
+      - shared:/workspace
+    networks:
+      - slurm
+      
+volumes:
+  var_lib_mysql:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ env("PWD") }}/var_lib_mysql"
+  etc_munge:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ env("PWD") }}/etc_munge"
+  etc_slurm:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ env("PWD") }}/etc_slurm"
+  shared:
+    driver: local
+    driver_opts:
+      type: none
+      o: bind
+      device: "{{ env("PWD") }}/shared"
+
+networks:
+  slurm:
